@@ -32,7 +32,9 @@ import org.junit.Assume
 import org.junit.Before
 import org.opensearch.action.support.master.AcknowledgedResponse
 import org.opensearch.cluster.metadata.IndexMetadata
+import org.opensearch.common.Strings
 import org.opensearch.common.settings.Settings
+import org.opensearch.common.transport.TransportAddress
 import org.opensearch.index.Index
 import org.opensearch.indexmanagement.IndexManagementPlugin.Companion.INDEX_MANAGEMENT_INDEX
 import org.opensearch.indexmanagement.indexstatemanagement.model.Policy
@@ -41,7 +43,12 @@ import org.opensearch.indexmanagement.indexstatemanagement.model.action.ReplicaC
 import org.opensearch.indexmanagement.indexstatemanagement.settings.ManagedIndexSettings
 import org.opensearch.indexmanagement.indexstatemanagement.transport.action.updateindexmetadata.UpdateManagedIndexMetaDataAction
 import org.opensearch.indexmanagement.indexstatemanagement.transport.action.updateindexmetadata.UpdateManagedIndexMetaDataRequest
+import org.opensearch.indexmanagement.util.CustomExternalTestCluster
 import org.opensearch.indexmanagement.waitFor
+import org.opensearch.test.TestCluster
+import java.net.InetAddress
+import java.net.InetSocketAddress
+import java.net.URL
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Locale
@@ -50,6 +57,23 @@ import kotlin.collections.HashMap
 class MetadataRegressionIT : IndexStateManagementIntegTestCase() {
 
     private val testIndexName = javaClass.simpleName.toLowerCase(Locale.ROOT)
+
+    override fun buildTestCluster(scope: Scope, seed: Long): TestCluster {
+        val clusterAddresses = System.getProperty(TESTS_CLUSTER)
+
+        if (Strings.hasLength(clusterAddresses)) {
+            val stringAddresses = clusterAddresses.split(",")
+            val transportAddresses = arrayOfNulls<TransportAddress>(stringAddresses.size)
+            var i = 0
+            for (stringAddress in stringAddresses) {
+                val url = URL("http://" + stringAddress)
+                val inetAddress = InetAddress.getByName(url.host)
+                transportAddresses[i++] = TransportAddress(InetSocketAddress(inetAddress, url.port))
+            }
+            return CustomExternalTestCluster(createTempDir(), externalClusterClientSettings(), transportClientPlugins(), *transportAddresses)
+        }
+        return super.buildTestCluster(scope, seed)
+    }
 
     @Before
     fun startMetadataService() {
