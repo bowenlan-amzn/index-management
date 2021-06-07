@@ -38,7 +38,6 @@ import org.opensearch.common.transport.TransportAddress
 import org.opensearch.env.Environment
 import org.opensearch.http.HttpInfo
 import org.opensearch.plugins.Plugin
-import org.opensearch.test.InternalTestCluster
 import org.opensearch.test.OpenSearchTestCase
 import org.opensearch.test.TestCluster
 import org.opensearch.transport.MockTransportClient
@@ -117,11 +116,13 @@ class CustomExternalTestCluster(
             .put(additionalSettings)
             .put(
                 "node.name",
-                InternalTestCluster.TRANSPORT_CLIENT_PREFIX + EXTERNAL_CLUSTER_PREFIX +
-                    counter.getAndIncrement()
+                "dev-dsk-bowenlan-2b-41a78fb8.us-west-2.amazon.com"
+//                InternalTestCluster.TRANSPORT_CLIENT_PREFIX + EXTERNAL_CLUSTER_PREFIX +
+//                    counter.getAndIncrement()
             )
             .put("client.transport.ignore_cluster_name", true)
             .put(Environment.PATH_HOME_SETTING.key, tempDir)
+        logger.info("temp dir: $tempDir")
         val addMockTcpTransport = additionalSettings[NetworkModule.TRANSPORT_TYPE_KEY] == null
         if (addMockTcpTransport) {
             val transport: String = OpenSearchTestCase.getTestTransportType()
