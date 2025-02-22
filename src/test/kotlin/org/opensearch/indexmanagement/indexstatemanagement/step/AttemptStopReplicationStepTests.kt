@@ -6,16 +6,15 @@
 package org.opensearch.indexmanagement.indexstatemanagement.step
 
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doAnswer
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.opensearch.action.support.master.AcknowledgedResponse
-import org.opensearch.client.AdminClient
-import org.opensearch.client.Client
-import org.opensearch.client.IndicesAdminClient
+import org.opensearch.client.node.NodeClient
 import org.opensearch.cluster.service.ClusterService
 import org.opensearch.common.settings.Settings
-import org.opensearch.commons.replication.ReplicationPluginInterface
+import org.opensearch.commons.replication.action.StopIndexReplicationRequest
 import org.opensearch.core.action.ActionListener
 import org.opensearch.indexmanagement.indexstatemanagement.step.stopreplication.AttemptStopReplicationStep
 import org.opensearch.indexmanagement.spi.indexstatemanagement.Step
@@ -32,17 +31,17 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
     private val lockService: LockService = LockService(mock(), clusterService)
 
     fun `test stop replication step sets step status to completed when successful`() {
-        val stopReplicationResponse = AcknowledgedResponse(true)
-        val indicesAdminClient: IndicesAdminClient = mock()
-        val client = getClient(getAdminClient(indicesAdminClient))
+//        val stopReplicationResponse = AcknowledgedResponse(true)
+//        val indicesAdminClient: IndicesAdminClient = mock()
+        val client = getClient(true, false)
 
         runBlocking {
-            val replicationPluginInterface: ReplicationPluginInterface = mock()
-            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
-                .thenAnswer { invocation ->
-                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
-                    listener.onResponse(stopReplicationResponse) // Simulate a successful response
-                }
+//            val replicationPluginInterface: ReplicationPluginInterface = mock()
+//            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
+//                .thenAnswer { invocation ->
+//                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
+//                    listener.onResponse(stopReplicationResponse) // Simulate a successful response
+//                }
             val managedIndexMetaData = ManagedIndexMetaData(
                 "test",
                 "indexUuid",
@@ -70,7 +69,7 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
                 lockService,
             )
             val attemptStopReplicationStep = AttemptStopReplicationStep()
-            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
+//            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
             attemptStopReplicationStep.preExecute(logger, context).execute()
             val updatedManagedIndexMetaData = attemptStopReplicationStep.getUpdatedManagedIndexMetadata(managedIndexMetaData)
             assertEquals(
@@ -82,18 +81,18 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
     }
 
     fun `test stop replication step sets step status to failed when not acknowledged`() {
-        val stopReplicationResponse = AcknowledgedResponse(false)
-        val indicesAdminClient: IndicesAdminClient = mock()
-        val client = getClient(getAdminClient(indicesAdminClient))
+//        val stopReplicationResponse = AcknowledgedResponse(false)
+//        val indicesAdminClient: IndicesAdminClient = mock()
+        val client = getClient(false, false)
         println("Client class: " + client::class.java.name)
 
         runBlocking {
-            val replicationPluginInterface: ReplicationPluginInterface = mock()
-            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
-                .thenAnswer { invocation ->
-                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
-                    listener.onResponse(stopReplicationResponse) // Simulate a successful response
-                }
+//            val replicationPluginInterface: ReplicationPluginInterface = mock()
+//            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
+//                .thenAnswer { invocation ->
+//                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
+//                    listener.onResponse(stopReplicationResponse) // Simulate a successful response
+//                }
             val managedIndexMetaData = ManagedIndexMetaData(
                 "test",
                 "indexUuid",
@@ -121,7 +120,7 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
                 lockService,
             )
             val attemptStopReplicationStep = AttemptStopReplicationStep()
-            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
+//            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
             attemptStopReplicationStep.preExecute(logger, context).execute()
             val updatedManagedIndexMetaData = attemptStopReplicationStep.getUpdatedManagedIndexMetadata(managedIndexMetaData)
             assertEquals(
@@ -133,17 +132,17 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
     }
 
     fun `test stop replication step sets step status to failed when error thrown`() {
-        val indicesAdminClient: IndicesAdminClient = mock()
-        val client = getClient(getAdminClient(indicesAdminClient))
-        val exception = Exception("Test exception")
+//        val indicesAdminClient: IndicesAdminClient = mock()
+        val client = getClient(true, true)
+//        val exception = Exception("Test exception")
 
         runBlocking {
-            val replicationPluginInterface: ReplicationPluginInterface = mock()
-            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
-                .thenAnswer { invocation ->
-                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
-                    listener.onFailure(exception) // Simulate a successful response
-                }
+//            val replicationPluginInterface: ReplicationPluginInterface = mock()
+//            whenever(replicationPluginInterface.stopReplication(any(), any(), any()))
+//                .thenAnswer { invocation ->
+//                    val listener = invocation.getArgument<ActionListener<AcknowledgedResponse>>(2)
+//                    listener.onFailure(exception)
+//                }
 
             val managedIndexMetaData = ManagedIndexMetaData(
                 "test",
@@ -172,7 +171,7 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
                 lockService,
             )
             val attemptStopReplicationStep = AttemptStopReplicationStep()
-            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
+//            attemptStopReplicationStep.setReplicationPluginInterface(replicationPluginInterface)
             attemptStopReplicationStep.preExecute(logger, context).execute()
             val updatedManagedIndexMetaData = attemptStopReplicationStep.getUpdatedManagedIndexMetadata(managedIndexMetaData)
             println("Step status for 3rd test: " + updatedManagedIndexMetaData.stepMetaData?.stepStatus)
@@ -185,15 +184,19 @@ class AttemptStopReplicationStepTests : OpenSearchTestCase() {
         }
     }
 
-    private fun getClient(adminClient: AdminClient): Client {
-        val mockClient = mock<Client>()
-        whenever(mockClient.admin()).thenReturn(adminClient)
-        return mockClient
-    }
-
-    private fun getAdminClient(indicesAdminClient: IndicesAdminClient): AdminClient {
-        val mockAdminClient = mock<AdminClient>()
-        whenever(mockAdminClient.indices()).thenReturn(indicesAdminClient)
-        return mockAdminClient
+    private fun getClient(ack: Boolean, exception: Boolean): NodeClient = mock<NodeClient> {
+        doAnswer { invocationOnMock ->
+            val listener = invocationOnMock.getArgument<ActionListener<AcknowledgedResponse>>(2)
+            if (exception) {
+                listener.onFailure(java.lang.Exception())
+            } else {
+                if (ack) {
+                    listener.onResponse(AcknowledgedResponse(true))
+                } else {
+                    listener.onResponse(AcknowledgedResponse(false))
+                }
+            }
+            null
+        }.whenever(this.mock).execute<StopIndexReplicationRequest, AcknowledgedResponse>(any(), any(), any())
     }
 }

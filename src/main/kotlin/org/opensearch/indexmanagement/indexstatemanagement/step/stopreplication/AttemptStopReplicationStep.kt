@@ -31,7 +31,7 @@ class AttemptStopReplicationStep : Step(name) {
         val indexName = context.metadata.index
         try {
             val stopIndexReplicationRequestObj = StopIndexReplicationRequest(indexName)
-            val response: AcknowledgedResponse = context.client.admin().indices().suspendUntil {
+            val response: AcknowledgedResponse = context.client.suspendUntil {
                 replicationPluginInterface.stopReplication(
                     context.client,
                     stopIndexReplicationRequestObj,
